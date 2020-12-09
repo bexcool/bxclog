@@ -77,7 +77,7 @@ const { BXCLog } = require("bxclog");
  * because creating new instances every time you need to log 
  * something will have a negative impact on performance
  */
-exports.bxclogger = new BXCLog({
+const bxclogger = new BXCLog({
     saveToFile: true,
     brackets:   "<>",
 });
