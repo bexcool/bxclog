@@ -5,15 +5,21 @@ import path from "path";
 export interface IBXCLogOptions {
     /**
      * Any locale.
+     * 
+     * Use "auto" to set automatically
+     * 
      * eg. en-GB, de-DE, en-US
      */
-    locale?: string | string[];
+    locale?: string | string[] | "auto";
 
     /**
      * Any timezone.
+     * 
+     * Use "auto" to set automatically
+     * 
      * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
      */
-    timeZone?: string;
+    timeZone?: string | "auto";
 
     /**
      * Which type of brackets to use
@@ -31,15 +37,20 @@ export interface IBXCLogOptions {
 
     /**
      * Where should the file be stored.
+     * 
      * SaveToFile must be enabled for this to have effect.
+     * 
      * Relative to the entry file (eg. index.js).
-     * eg. "../logs"
+     * 
+     * eg. `"../logs"`
      */
     saveFilePath?: string;
 
     /**
      * Changes whether debug entires are shown.
+     * 
      * Should be changed by the value of an environment variable.
+     * 
      * eg. `environment == "release"`
      */
     showDebug?: boolean;
@@ -51,8 +62,8 @@ type LogType = "debug" | "info" | "warn" | "error";
  * Default constructor options
  */
 const BXCLogDefaultOptions: Required<IBXCLogOptions> = {
-    locale:   "en-GB",
-    timeZone: "UTC",
+    locale:   "auto",
+    timeZone: "auto",
     brackets: "square",
     saveToFile: false,
     saveFilePath: "logs",
@@ -70,22 +81,9 @@ export class BXCLog {
     // New Line
     private endl = "\n";
     // Date for .log files
-    private dateFormatFile = Intl.DateTimeFormat(this.options.locale, {
-        timeZone: this.options.timeZone,
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit",
-    });
+    private dateFormatFile!: Intl.DateTimeFormat;
     // Date for console output
-    private dateFormat = Intl.DateTimeFormat(this.options.locale, {
-        timeZone: this.options.timeZone,
-        year: "2-digit",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-    });
+    private dateFormat!: Intl.DateTimeFormat;
     // Where the log file is stored
     private filePath = "";
 
@@ -100,6 +98,7 @@ export class BXCLog {
         // Assign the new properties to the default settings
         Object.assign(this.options, _options);
 
+        this.setDateTimeFormats();
         this.getBracketsType();
         
         // If saving to a file is enabled, get the path of the file
@@ -114,7 +113,7 @@ export class BXCLog {
             if (!entryPath?.endsWith(path.sep))
                 entryPath += path.sep;
 
-            this.filePath = path.resolve(entryPath + filePath + this.dateFormatFile.format(new Date()) + ".bxc.log")
+            this.filePath = path.resolve(entryPath + filePath + this.dateFormatFile.format(new Date()) + ".bxc.log");
         }
     }
     
@@ -136,81 +135,73 @@ export class BXCLog {
         this.doLog("error", service, ...data);
     }
 
-
-    private getBracketsType(): void
-    {
-        let start = "[";
-        let close = "]";
-        
-        // TODO: Make this into a lookup table
-        switch (this.options.brackets)
-        {
-            case "round":
-            case "parentheses":
-            case "()":
-                start = "(";
-                close = ")";
-                break;
-
-            case "square":
-            case "box":
-            case "[]":
-                start = "[";
-                close = "]";
-                break;
-
-            case "curly":
-            case "braces":
-            case "{}":
-                start = "{";
-                close = "}";
-                break;
-
-            case "angle":
-            case "chevrons":
-            case "<>":
-                start = "<";
-                close = ">";
-                break;
-
-            default:
-                start = "[";
-                close = "]";
-                break;
-        }
-
-        this.bracketsStart = start;
-        this.bracketsClose = close;
+    private setDateTimeFormats(): void {
+        this.dateFormatFile = Intl.DateTimeFormat(this.options.locale, {
+            timeZone: this.options.timeZone,
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+        });
+        this.dateFormat = Intl.DateTimeFormat(this.options.locale, {
+            timeZone: this.options.timeZone,
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
     }
 
-    private wrapString(s: string) {
+    private getBracketsType(): void {
+        const bracketsType = this.options.brackets ?? "square";
+
+        const bracketsLookup = {
+            "round": [ "(", ")" ],
+            "square":[ "[", "]" ],
+            "curly": [ "{", "}" ],
+            "angle": [ "<", ">" ],
+
+            get "parentheses"() { return this.round  },
+            get "()"         () { return this.round  },
+            get "box"        () { return this.square },
+            get "[]"         () { return this.square },
+            get "braces"     () { return this.curly  },
+            get "{}"         () { return this.curly  },
+            get "chevrons"   () { return this.angle  },
+            get "<>"         () { return this.angle  },
+        };
+
+        if (bracketsType in bracketsLookup) {
+            this.bracketsStart = bracketsLookup[bracketsType][0];
+            this.bracketsClose = bracketsLookup[bracketsType][1];
+        } else {
+            this.bracketsStart = "[";
+            this.bracketsClose = "]";
+        }
+    }
+
+    private wrapString(s: string): string {
         return this.bracketsStart + s + this.bracketsClose;
     }
 
-    private doLog(type: LogType, _service: string, ...data: any[]) {
+    private doLog(type: LogType, _service: string, ...data: any[]): void {
         const date = this.dateFormat.format(new Date());
 
         _service = _service.trim();
         let service = _service;
 
-        // TODO: Make this into a lookup table
-        switch (type)
-        {
-            case "debug":
-                service = clc.green(service);
-                break;
-            case "info":
-                service = clc.blueBright(service);
-                break;
-            case "warn":
-                service = clc.yellow(service);
-                break;
-            case "error":
-                service = clc.red(service);
-                break;
-            default:
-                service = clc.magenta(service);
-                break;
+        const colorsLookup = {
+            "debug": clc.green,
+            "info":  clc.blue,
+            "warn":  clc.yellow,
+            "error": clc.red
+        };
+
+        if (type in colorsLookup) {
+            service = colorsLookup[type](service);
+        } else {
+            service = clc.magenta(service);
         }
 
         console.log(this.wrapString(date), this.wrapString(service), ...data);

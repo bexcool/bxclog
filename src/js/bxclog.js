@@ -9,8 +9,8 @@ const path_1 = tslib_1.__importDefault(require("path"));
  * Default constructor options
  */
 const BXCLogDefaultOptions = {
-    locale: "en-GB",
-    timeZone: "UTC",
+    locale: "auto",
+    timeZone: "auto",
     brackets: "square",
     saveToFile: false,
     saveFilePath: "logs",
@@ -79,42 +79,32 @@ class BXCLog {
     error(service, ...data) {
         this.doLog("error", service, ...data);
     }
+    setDateTimeFormats() {
+    }
     getBracketsType() {
-        let start = "[";
-        let close = "]";
-        // TODO: Make this into a lookup table
-        switch (this.options.brackets) {
-            case "round":
-            case "parentheses":
-            case "()":
-                start = "(";
-                close = ")";
-                break;
-            case "square":
-            case "box":
-            case "[]":
-                start = "[";
-                close = "]";
-                break;
-            case "curly":
-            case "braces":
-            case "{}":
-                start = "{";
-                close = "}";
-                break;
-            case "angle":
-            case "chevrons":
-            case "<>":
-                start = "<";
-                close = ">";
-                break;
-            default:
-                start = "[";
-                close = "]";
-                break;
+        const bracketsType = this.options.brackets ?? "square";
+        const bracketsLookup = {
+            "round": ["(", ")"],
+            "square": ["[", "]"],
+            "curly": ["{", "}"],
+            "angle": ["<", ">"],
+            get "parentheses"() { return this.round; },
+            get "()"() { return this.round; },
+            get "box"() { return this.square; },
+            get "[]"() { return this.square; },
+            get "braces"() { return this.curly; },
+            get "{}"() { return this.curly; },
+            get "chevrons"() { return this.angle; },
+            get "<>"() { return this.angle; },
+        };
+        if (bracketsType in bracketsLookup) {
+            this.bracketsStart = bracketsLookup[bracketsType][0];
+            this.bracketsClose = bracketsLookup[bracketsType][1];
         }
-        this.bracketsStart = start;
-        this.bracketsClose = close;
+        else {
+            this.bracketsStart = "[";
+            this.bracketsClose = "]";
+        }
     }
     wrapString(s) {
         return this.bracketsStart + s + this.bracketsClose;
@@ -123,23 +113,17 @@ class BXCLog {
         const date = this.dateFormat.format(new Date());
         _service = _service.trim();
         let service = _service;
-        // TODO: Make this into a lookup table
-        switch (type) {
-            case "debug":
-                service = cli_color_1.default.green(service);
-                break;
-            case "info":
-                service = cli_color_1.default.blueBright(service);
-                break;
-            case "warn":
-                service = cli_color_1.default.yellow(service);
-                break;
-            case "error":
-                service = cli_color_1.default.red(service);
-                break;
-            default:
-                service = cli_color_1.default.magenta(service);
-                break;
+        const colorsLookup = {
+            "debug": cli_color_1.default.green,
+            "info": cli_color_1.default.blue,
+            "warn": cli_color_1.default.yellow,
+            "error": cli_color_1.default.red
+        };
+        if (type in colorsLookup) {
+            service = colorsLookup[type](service);
+        }
+        else {
+            service = cli_color_1.default.magenta(service);
         }
         console.log(this.wrapString(date), this.wrapString(service), ...data);
         if (this.options.saveToFile)

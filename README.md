@@ -6,9 +6,11 @@ A simple logging utility module
 
 ## Installation
 
-See the [releases tab](https://github.com/Spejik/bxclog/releases)
+(any language) Clone the repo:
 
-Or with npm:
+`git clone https://github.com/Spejik/bxclog`
+
+(javascript/typescript) Install with npm:
 
 `npm install bxclog`
 
@@ -28,9 +30,9 @@ Or with npm:
 
 ## Javascript
 
+
+
 ## Typescript
-
-
 
 ## CPP
 
