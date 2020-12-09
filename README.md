@@ -22,7 +22,7 @@ Use "auto" to set automatically from OS.
 
 Type: `string`  
 Default: `"auto"`  
-Any [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+Any [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)  
 Use "auto" to set automatically from OS.
 
 ### brackets
