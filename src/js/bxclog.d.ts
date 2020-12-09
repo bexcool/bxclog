@@ -1,11 +1,11 @@
 export interface IBXCLogOptions {
     /**
-     * Any locale
+     * Any locale.
      * eg. en-GB, de-DE, en-US
      */
     locale?: string | string[];
     /**
-     * Any timezone
+     * Any timezone.
      * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
      */
     timeZone?: string;
@@ -16,28 +16,35 @@ export interface IBXCLogOptions {
     /**
      * Should the log be saved into a file?
      */
-    saveToFile: boolean;
+    saveToFile?: boolean;
     /**
-     * Where should the file be stored
-     * SaveToFile must be enabled for this to have effect
+     * Where should the file be stored.
+     * SaveToFile must be enabled for this to have effect.
+     * Relative to the entry file (eg. index.js).
      * eg. "../logs"
      */
-    saveFilePath: string;
+    saveFilePath?: string;
+    /**
+     * Changes whether debug entires are shown.
+     * Should be changed by the value of an environment variable.
+     * eg. `environment == "release"`
+     */
+    showDebug?: boolean;
 }
 export declare class BXCLog {
-    options: IBXCLogOptions;
+    private options;
     private bracketsStart;
     private bracketsClose;
-    constructor(_options: IBXCLogOptions);
-    dateFormatFile: Intl.DateTimeFormat;
-    dateFormat: Intl.DateTimeFormat;
-    filePath: string;
-    endl: string;
-    info(service: string, ...data: any[]): void;
+    private endl;
+    private dateFormatFile;
+    private dateFormat;
+    private filePath;
+    constructor(_options?: IBXCLogOptions);
     debug(service: string, ...data: any[]): void;
+    info(service: string, ...data: any[]): void;
     warn(service: string, ...data: any[]): void;
     error(service: string, ...data: any[]): void;
     private getBracketsType;
-    private wrapService;
+    private wrapString;
     private doLog;
 }

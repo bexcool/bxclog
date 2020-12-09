@@ -1,28 +1,30 @@
-# IN DEVELOPMENT, DO NOT USE FOR ANYTHING ELSE THAN TESTING
+# BXCLog
 
-# BBON
-BeXCool Binary Object Notation
+BeXCool Logger
 
-The project is still in alpha and should not be used in production
+A simple logging utility module
 
 ## Installation
 
-See the [releases tab](https://github.com/Spejik/BBON/releases)
+See the [releases tab](https://github.com/Spejik/bxclog/releases)
 
+Or with npm:
+
+`npm install bxclog`
 
 ## Table of contents
 
 ### How to use
 
-  - [Javascript](#javascript)
+- [Javascript](#javascript)
   
-  - [Typescript](#typescript)
+- [Typescript](#typescript)
   
-  - [C++](#cpp)
-  
-  - [C#](#csharp) 
-  
-  - [PHP](#php)
+- [C++](#cpp)
+
+### Options
+
+---
 
 ## Javascript
 
@@ -30,6 +32,4 @@ See the [releases tab](https://github.com/Spejik/BBON/releases)
 
 ## CPP
 
-## CSharp
-
-## PHP
+WIP

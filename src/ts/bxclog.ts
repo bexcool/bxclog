@@ -4,13 +4,13 @@ import path from "path";
 
 export interface IBXCLogOptions {
     /**
-     * Any locale
+     * Any locale.
      * eg. en-GB, de-DE, en-US
      */
     locale?: string | string[];
 
     /**
-     * Any timezone
+     * Any timezone.
      * https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
      */
     timeZone?: string;
@@ -27,23 +27,29 @@ export interface IBXCLogOptions {
     /**
      * Should the log be saved into a file?
      */
-    saveToFile: boolean;
+    saveToFile?: boolean;
 
     /**
-     * Where should the file be stored
-     * SaveToFile must be enabled for this to have effect
+     * Where should the file be stored.
+     * SaveToFile must be enabled for this to have effect.
+     * Relative to the entry file (eg. index.js).
      * eg. "../logs"
      */
-    saveFilePath: string;
+    saveFilePath?: string;
 
     /**
-     * Changes whether debug entires are shown
-     * Should be changed by the value of an environment variable
+     * Changes whether debug entires are shown.
+     * Should be changed by the value of an environment variable.
      * eg. `environment == "release"`
      */
-    showDebug: boolean;
+    showDebug?: boolean;
 }
 
+type LogType = "debug" | "info" | "warn" | "error";
+
+/**
+ * Default constructor options
+ */
 const BXCLogDefaultOptions: Required<IBXCLogOptions> = {
     locale:   "en-GB",
     timeZone: "UTC",
@@ -53,17 +59,24 @@ const BXCLogDefaultOptions: Required<IBXCLogOptions> = {
     showDebug: true,
 };
 
+
 export class BXCLog {
-    private options: IBXCLogOptions = BXCLogDefaultOptions;
+    // Class options
+    // Object.create is used here to not overwrite the original constant
+    private options: IBXCLogOptions = Object.create(BXCLogDefaultOptions);
+    // Brackets that will be used for logging
     private bracketsStart = "[";
     private bracketsClose = "]";
+    // New Line
     private endl = "\n";
+    // Date for .log files
     private dateFormatFile = Intl.DateTimeFormat(this.options.locale, {
         timeZone: this.options.timeZone,
         year: "2-digit",
         month: "2-digit",
         day: "2-digit",
     });
+    // Date for console output
     private dateFormat = Intl.DateTimeFormat(this.options.locale, {
         timeZone: this.options.timeZone,
         year: "2-digit",
@@ -73,9 +86,10 @@ export class BXCLog {
         minute: "2-digit",
         second: "2-digit",
     });
-    private filePath = path.resolve(this.options.saveFilePath + this.dateFormatFile.format(new Date()) + ".bxc.log");
+    // Where the log file is stored
+    private filePath = "";
 
-    constructor(_options: IBXCLogOptions) {
+    constructor(_options: IBXCLogOptions = BXCLogDefaultOptions) {
         const IntlOptions = Intl.DateTimeFormat().resolvedOptions();
         
         if (_options.locale == "auto") 
@@ -87,32 +101,40 @@ export class BXCLog {
         Object.assign(this.options, _options);
 
         this.getBracketsType();
+        
+        // If saving to a file is enabled, get the path of the file
+        if (this.options.saveToFile)
+        {
+            let entryPath = path.dirname(require.main?.path ?? ".");
+            let filePath = this.options.saveFilePath;
+
+            // add "/" to the end of the path if missing
+            if (!filePath?.endsWith(path.sep))
+                filePath += path.sep;
+            if (!entryPath?.endsWith(path.sep))
+                entryPath += path.sep;
+
+            this.filePath = path.resolve(entryPath + filePath + this.dateFormatFile.format(new Date()) + ".bxc.log")
+        }
     }
-
-    info(service: string, ...data: any[]): void {
-        const date = this.dateFormat.format(new Date());
-
-        console.log(date, clc.yellow(this.wrapService(service)), ...data);
-        fs.appendFileSync(this.filePath, [date, "(info) ", this.wrapService(service), ...data, this.endl].join(" "));
-    }
-
+    
     debug(service: string, ...data: any[]): void {
         if (!this.options.showDebug)
             return;
-        const date = this.dateFormat.format(new Date());
+        this.doLog("debug", service, ...data);
+    }
 
-        console.log(date, clc.green(this.wrapService(service)), ...data);
-        fs.appendFileSync(this.filePath, [date, "(debug)", this.wrapService(service), ...data, this.endl].join(" "));
+    info(service: string, ...data: any[]): void {
+        this.doLog("info", service, ...data);
     }
 
     warn(service: string, ...data: any[]): void {
-        const date = this.dateFormat.format(new Date());
-
-        console.log(date, clc.bgYellow(clc.black(this.wrapService(service))), ...data);
-        fs.appendFileSync(this.filePath, [date, "(warn) ", this.wrapService(service), ...data, this.endl].join(" "));
+        this.doLog("warn", service, ...data);
     }
 
-    error(service: string, ...data: any[]): void {}
+    error(service: string, ...data: any[]): void {
+        this.doLog("error", service, ...data);
+    }
 
 
     private getBracketsType(): void
@@ -120,6 +142,7 @@ export class BXCLog {
         let start = "[";
         let close = "]";
         
+        // TODO: Make this into a lookup table
         switch (this.options.brackets)
         {
             case "round":
@@ -160,14 +183,39 @@ export class BXCLog {
         this.bracketsClose = close;
     }
 
-    private wrapService(s: string) {
-        return "".concat(this.bracketsStart, s, this.bracketsClose);
+    private wrapString(s: string) {
+        return this.bracketsStart + s + this.bracketsClose;
     }
 
-    private doLog(service: string, ...data: any[]) {
+    private doLog(type: LogType, _service: string, ...data: any[]) {
         const date = this.dateFormat.format(new Date());
 
-        console.log(date, this.wrapService(service), ...data);
-        fs.appendFileSync(this.filePath, [date, "(error)", this.wrapService(service), ...data, this.endl].join(" "));
+        _service = _service.trim();
+        let service = _service;
+
+        // TODO: Make this into a lookup table
+        switch (type)
+        {
+            case "debug":
+                service = clc.green(service);
+                break;
+            case "info":
+                service = clc.blueBright(service);
+                break;
+            case "warn":
+                service = clc.yellow(service);
+                break;
+            case "error":
+                service = clc.red(service);
+                break;
+            default:
+                service = clc.magenta(service);
+                break;
+        }
+
+        console.log(this.wrapString(date), this.wrapString(service), ...data);
+
+        if (this.options.saveToFile)
+            fs.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, this.endl].join(" "));
     }
 }

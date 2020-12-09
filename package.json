@@ -18,14 +18,20 @@
   ],
   "author": "Spej, Bexcool (bexcool.eu)",
   "license": "MIT",
+  "engines": {
+    "node": "^14.0.0"
+  },
   "bugs": {
     "url": "https://github.com/spejik/bxclog/issues"
   },
   "homepage": "https://github.com/spejik/bxclog#readme",
   "dependencies": {
     "@types/cli-color": "^2.0.0",
-    "@types/node": "^14.14.10",
+    "@types/node": "^14.14.11",
     "cli-color": "^2.0.0",
     "tslib": "^2.0.3"
+  },
+  "devDependencies": {
+    "sleep": "^6.3.0"
   }
 }
