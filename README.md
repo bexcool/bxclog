@@ -11,6 +11,8 @@ A simple logging utility module
 
 ## Options
 
+Note: Some options may have a different syntax to better match the language
+
 ### locale
 
 Type: `string`  

@@ -128,8 +128,17 @@ class BXCLog {
             service = cli_color_1.default.magenta(service);
         }
         console.log("", this.wrapString(date), this.wrapString(service), ...data);
-        if (this.options.saveToFile)
-            fs_1.default.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" "));
+        if (this.options.saveToFile) {
+            // Copy the date string
+            let _date = date;
+            // If the time is separated with / (in timezones America/...), replace the / with dots
+            if (_date.includes(path_1.default.sep)) {
+                // replaceAll is new in node and old versions don't support it
+                // so we need to use a regex with the global flag
+                _date = _date.replace(new RegExp(path_1.default.sep, "g"), ".");
+            }
+            fs_1.default.appendFileSync(this.filePath, [this.wrapString(_date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" "));
+        }
     }
 }
 exports.BXCLog = BXCLog;
