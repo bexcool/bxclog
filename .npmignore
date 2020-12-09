@@ -5,3 +5,5 @@ src/*
 bxclog.code-workspace
 tsconfig.tsbuildinfo
 tsconfig.json
+logs
+node_modules
