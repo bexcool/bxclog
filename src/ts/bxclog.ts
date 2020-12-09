@@ -78,8 +78,6 @@ export class BXCLog {
     // Brackets that will be used for logging
     private bracketsStart = "[";
     private bracketsClose = "]";
-    // New Line
-    private endl = "\n";
     // Date for .log files
     private dateFormatFile!: Intl.DateTimeFormat;
     // Date for console output
@@ -104,16 +102,25 @@ export class BXCLog {
         // If saving to a file is enabled, get the path of the file
         if (this.options.saveToFile)
         {
-            let entryPath = path.dirname(require.main?.path ?? ".");
-            let filePath = this.options.saveFilePath;
+            let entryPath = require.main?.path ?? ".";
+            let filePath = this.options.saveFilePath ?? "logs";
 
             // add "/" to the end of the path if missing
-            if (!filePath?.endsWith(path.sep))
-                filePath += path.sep;
             if (!entryPath?.endsWith(path.sep))
                 entryPath += path.sep;
+            if (!filePath?.endsWith(path.sep))
+                filePath += path.sep;
 
-            this.filePath = path.resolve(entryPath + filePath + this.dateFormatFile.format(new Date()) + ".bxc.log");
+            this.filePath = 
+                path.resolve(
+                    entryPath +
+                    filePath +
+                    this.dateFormatFile.format(new Date()).replace(/\s/g, '') + 
+                    ".bxc.log");
+
+            console.debug(this.filePath)
+            // Create the parent directories just in case the other functions don't
+            fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
         }
     }
     
@@ -207,6 +214,6 @@ export class BXCLog {
         console.log(this.wrapString(date), this.wrapString(service), ...data);
 
         if (this.options.saveToFile)
-            fs.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, this.endl].join(" "));
+            fs.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" "));
     }
 }

@@ -24,25 +24,6 @@ class BXCLog {
         // Brackets that will be used for logging
         this.bracketsStart = "[";
         this.bracketsClose = "]";
-        // New Line
-        this.endl = "\n";
-        // Date for .log files
-        this.dateFormatFile = Intl.DateTimeFormat(this.options.locale, {
-            timeZone: this.options.timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-        });
-        // Date for console output
-        this.dateFormat = Intl.DateTimeFormat(this.options.locale, {
-            timeZone: this.options.timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
         // Where the log file is stored
         this.filePath = "";
         const IntlOptions = Intl.DateTimeFormat().resolvedOptions();
@@ -52,17 +33,25 @@ class BXCLog {
             _options.timeZone = IntlOptions.timeZone;
         // Assign the new properties to the default settings
         Object.assign(this.options, _options);
+        this.setDateTimeFormats();
         this.getBracketsType();
         // If saving to a file is enabled, get the path of the file
         if (this.options.saveToFile) {
-            let entryPath = path_1.default.dirname(require.main?.path ?? ".");
-            let filePath = this.options.saveFilePath;
+            let entryPath = require.main?.path ?? ".";
+            let filePath = this.options.saveFilePath ?? "logs";
             // add "/" to the end of the path if missing
-            if (!filePath?.endsWith(path_1.default.sep))
-                filePath += path_1.default.sep;
             if (!entryPath?.endsWith(path_1.default.sep))
                 entryPath += path_1.default.sep;
-            this.filePath = path_1.default.resolve(entryPath + filePath + this.dateFormatFile.format(new Date()) + ".bxc.log");
+            if (!filePath?.endsWith(path_1.default.sep))
+                filePath += path_1.default.sep;
+            this.filePath =
+                path_1.default.resolve(entryPath +
+                    filePath +
+                    this.dateFormatFile.format(new Date()).replace(/\s/g, '') +
+                    ".bxc.log");
+            console.debug(this.filePath);
+            // Create the parent directories just in case the other functions don't
+            fs_1.default.mkdirSync(path_1.default.dirname(this.filePath), { recursive: true });
         }
     }
     debug(service, ...data) {
@@ -80,6 +69,21 @@ class BXCLog {
         this.doLog("error", service, ...data);
     }
     setDateTimeFormats() {
+        this.dateFormatFile = Intl.DateTimeFormat(this.options.locale, {
+            timeZone: this.options.timeZone,
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+        });
+        this.dateFormat = Intl.DateTimeFormat(this.options.locale, {
+            timeZone: this.options.timeZone,
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
     }
     getBracketsType() {
         const bracketsType = this.options.brackets ?? "square";
@@ -127,7 +131,7 @@ class BXCLog {
         }
         console.log(this.wrapString(date), this.wrapString(service), ...data);
         if (this.options.saveToFile)
-            fs_1.default.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, this.endl].join(" "));
+            fs_1.default.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" "));
     }
 }
 exports.BXCLog = BXCLog;

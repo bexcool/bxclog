@@ -46,7 +46,6 @@ export declare class BXCLog {
     private options;
     private bracketsStart;
     private bracketsClose;
-    private endl;
     private dateFormatFile;
     private dateFormat;
     private filePath;
