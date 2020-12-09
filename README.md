@@ -6,11 +6,11 @@ A simple logging utility module
 
 ## Installation
 
-(any language) Clone the repo:
+Any Language - Clone the repo:
 
 `git clone https://github.com/Spejik/bxclog`
 
-(javascript/typescript) Install with npm:
+Javascript and Typescript - Install with npm:
 
 `npm install bxclog`
 
@@ -29,8 +29,6 @@ A simple logging utility module
 ---
 
 ## Javascript
-
-
 
 ## Typescript
 
