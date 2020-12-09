@@ -1,9 +1,18 @@
 const clc = require("cli-color");
-const { time } = require("console");
+const locale = require('locale-codes')
 const sleep = require("sleep");
 const { BXCLog } = require("./index");
 
 let totalTestsTime = 0;
+
+/**
+ * Capitalize
+ * @param {string} s string
+ */
+function c(s) 
+{
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 /**
  * 
@@ -60,32 +69,27 @@ try {
     const bxclog_brackets_angle     = new BXCLog({ brackets: "angle" });
     
     const bxclog_tz = { 
-        africa: {
-            central: new BXCLog({ timeZone: "Africa/Maputo", saveToFile: true, saveFilePath: "logs" }),
-        },
-        america: {
-            central: new BXCLog({ timeZone: "America/Bahia_Banderas", saveToFile: true, saveFilePath: "logs" }),
-            central_us: new BXCLog({ timeZone: "America/Matamoros", saveToFile: true, saveFilePath: "logs" }),
-            nyc: new BXCLog({ timeZone: "America/New_York", saveToFile: true, saveFilePath: "logs" }),
-            est: new BXCLog({ timeZone: "America/Cancun", saveToFile: true, saveFilePath: "logs" }),
-        },
-        asia: {
-            beijing: new BXCLog({ timeZone: "Asia/Shanghai", saveToFile: true, saveFilePath: "logs" }),
-            yekaterinburg: new BXCLog({ timeZone: "Asia/Yekaterinburg", saveToFile: true, saveFilePath: "logs" }),
-        },
-        australia: {
-            sydney: new BXCLog({ timeZone: "Australia/Sydney", saveToFile: true, saveFilePath: "logs" }),
-            queen:  new BXCLog({ timeZone: "Australia/Queensland", saveToFile: true, saveFilePath: "logs" }),
-        },
-        europe: {
-            germany: new BXCLog({ timeZone: "Europe/Berlin", saveToFile: true, saveFilePath: "logs" }),
-            england: new BXCLog({ timeZone: "Europe/London", saveToFile: true, saveFilePath: "logs" }),
-            russia:  new BXCLog({ timeZone: "Europe/Moscow", saveToFile: true, saveFilePath: "logs" }),
-            switzerland: new BXCLog({ timeZone: "Europe/Zurich", saveToFile: true, saveFilePath: "logs" }),
-        },
-        etc: {
-            gmt: new BXCLog({ timeZone: "GMT", saveToFile: true, saveFilePath: "logs" })
-        }
+        Africa: [
+            "Maputo",
+        ],
+        America: [
+            "Bahia_Banderas",
+            "Matamoros",
+            "Cancun",
+        ],
+        Asia: [
+            "Shanghai",
+            "Yekaterinburg",
+        ],
+        Australia: [
+            "Sydney",
+            "Queensland",
+        ],
+        Europe: [
+            "Berlin",
+            "London",
+            "Moscow",
+        ],
     };  
 
     doTest(bxclog_warmup,  "✨WARM UP - IGNORE✨");
@@ -99,15 +103,67 @@ try {
 
     console.log("=============================== TIMEZONES =================================");
 
+    // Disable this for faster tests
+
+    // Go trough all timezones in the object bxclog_tz
+    const testTimeZones = true;
+    // testTimeZones must be enabled
+    // Test ALL locales for each timezone
+    const testTimeZoneLocales = false;
+
+    // Test ALL locales with UTC
+    const testLocales = true;
+
+    if (testTimeZones)
     Object.keys(bxclog_tz).forEach((region) => {
-        Object.keys(bxclog_tz[region]).forEach((timezone) => {
-            // Capitalize
-            const c = s => s.charAt(0).toUpperCase() + s.slice(1);
+        bxclog_tz[region].forEach((country) => {
+            doTest(
+                new BXCLog({ 
+                    saveToFile: true, 
+                    saveFilePath: "logs", 
+                    timeZone: region + "/" + country
+                }),
+                `Timezone:${c(region)}:${c(country)}`
+            );
 
-            doTest(bxclog_tz[region][timezone], `Timezone:${c(region)}:${c(timezone)}`)
-        })
-    })
+            if (testTimeZoneLocales) 
+            locale.all.forEach((_locale) => {
+                try {
+                    doTest(
+                        new BXCLog({ 
+                        saveToFile: true, 
+                        saveFilePath: "logs", 
+                        timeZone: region + "/" + country,
+                        locale: _locale.tag,
+                        }),
+                        `Timezone:${c(region)}:${c(country)} - Locale:${c(_locale.tag)}`
+                    );
+                } catch (e) {
+                    console.log(e.message);
+                }
+            });
+        });
+    });
 
+
+    if (testLocales)
+    locale.all.forEach((_locale) => {
+        try {
+            doTest(
+                new BXCLog({ 
+                    saveToFile: true, 
+                    saveFilePath: "logs",
+                    locale: _locale.tag,
+                }),
+                `Locale:${c(_locale.tag)}`
+            );
+        } catch (e) {
+            console.log(e.message);
+        }
+    });
+
+    if (testTimeZoneLocales || testLocales)
+        console.log("Total number of locales", clc.blue(locale.all.length));
     console.log("Total testing time: ", clc.blue(`${totalTestsTime}ms`));
 
 } catch (e) {

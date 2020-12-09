@@ -32,6 +32,7 @@
     "tslib": "^2.0.3"
   },
   "devDependencies": {
+    "locale-codes": "^1.3.1",
     "sleep": "^6.3.0"
   }
 }

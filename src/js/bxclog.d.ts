@@ -55,7 +55,8 @@ export declare class BXCLog {
     warn(service: string, ...data: any[]): void;
     error(service: string, ...data: any[]): void;
     private setDateTimeFormats;
-    private getBracketsType;
+    private setBracketsType;
+    setFilePath(): void;
     private wrapString;
     private doLog;
 }

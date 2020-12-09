@@ -86,6 +86,19 @@ export class BXCLog {
     private filePath = "";
 
     constructor(_options: IBXCLogOptions = BXCLogDefaultOptions) {
+        const __ = "[BXCLog] ";
+        const notAvailable = "not available in this environment";
+
+        if (!Intl) {
+            throw new Error(`${__}Internationalization is ${notAvailable}`);
+        }
+        if (!Intl.DateTimeFormat().resolvedOptions().locale) {
+            throw new Error(`${__}Locales are ${notAvailable}`);
+        }
+        if (!Intl.DateTimeFormat().resolvedOptions().timeZone) {
+            throw new Error(`${__}Time zones are ${notAvailable}`);
+        }
+        
         const IntlOptions = Intl.DateTimeFormat().resolvedOptions();
 
         // Assign the new properties to the default settings
@@ -97,26 +110,12 @@ export class BXCLog {
             this.options.timeZone = IntlOptions.timeZone;
 
         this.setDateTimeFormats();
-        this.getBracketsType();
+        this.setBracketsType();
         
         // If saving to a file is enabled, get the path of the file
         if (this.options.saveToFile)
         {
-            let entryPath = require.main?.path ?? ".";
-            let filePath = this.options.saveFilePath ?? "logs";
-
-            // add "/" to the end of the path if missing
-            if (!entryPath?.endsWith(path.sep))
-                entryPath += path.sep;
-            if (!filePath?.endsWith(path.sep))
-                filePath += path.sep;
-
-            this.filePath = 
-                path.resolve(
-                    entryPath +
-                    filePath +
-                    this.dateFormatDate.format(new Date()).replace(/\s/g, '') + 
-                    ".bxc.log");
+           this.setFilePath();
 
             // Create the parent directories just in case the other functions don't
             fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
@@ -142,21 +141,31 @@ export class BXCLog {
     }
 
     private setDateTimeFormats(): void {
-        this.dateFormatTime = Intl.DateTimeFormat(this.options.locale, {
-            timeZone: this.options.timeZone,
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
-        this.dateFormatDate = Intl.DateTimeFormat(this.options.locale, {
-            timeZone: this.options.timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-        });
+        const locale = this.options.locale;
+        const timezone = this.options.timeZone;
+        
+        if (Intl.DateTimeFormat.supportedLocalesOf([ locale ?? "" ]).length <= 0)
+            throw new Error("[BXCLog] [Intl:DateTimeFormat] Unsupported locale - " + locale)
+
+        try {
+            this.dateFormatTime = Intl.DateTimeFormat(locale, {
+                timeZone: timezone,
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+            });
+            this.dateFormatDate = Intl.DateTimeFormat(locale, {
+                timeZone: timezone,
+                year: "2-digit",
+                month: "2-digit",
+                day: "2-digit",
+            });
+        } catch (e) {
+            throw new Error("[BXCLog] [Intl:DateTimeFormat] " + e)
+        }
     }
 
-    private getBracketsType(): void {
+    private setBracketsType(): void {
         const bracketsType = this.options.brackets ?? "square";
 
         const bracketsLookup = {
@@ -182,6 +191,29 @@ export class BXCLog {
             this.bracketsStart = "[";
             this.bracketsClose = "]";
         }
+    }
+
+    setFilePath(): void {
+        let entryPath = require.main?.path ?? ".";
+        let filePath = this.options.saveFilePath ?? "logs";
+        let date = this.dateFormatDate.format(new Date());
+
+        // add "/" to the end of the path if missing
+        if (!entryPath?.endsWith(path.sep)) entryPath += path.sep;
+        if (!filePath?.endsWith(path.sep))  filePath += path.sep;
+
+        // If the time is separated with `\`, `/`, replace it with a dot
+        if (date.includes("\\") || date.includes("/"))
+            date = date.replace(/\\\//g, ".");
+
+        date = date.replace(/\s/g, '');
+
+        this.filePath = 
+            path.resolve(
+                entryPath +
+                filePath +
+                date + 
+                ".bxc.log");
     }
 
     private wrapString(s: string): string {
@@ -216,17 +248,10 @@ export class BXCLog {
 
         if (this.options.saveToFile)
         {
-            // Copy the date string
-            let _date = date;
-
-            // If the time is separated with / (in timezones America/...), replace the / with dots
-            if (_date.includes(path.sep))
-            {
-                // replaceAll is new in node and old versions don't support it
-                // so we need to use a regex with the global flag
-                _date = _date.replace(new RegExp(path.sep, "g"), ".");
-            }
-            fs.appendFileSync(this.filePath, [this.wrapString(_date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" "));
+            fs.appendFileSync(
+                this.filePath, 
+                [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" ")
+            );
         }
     }
 }
