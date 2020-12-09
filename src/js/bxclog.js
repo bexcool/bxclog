@@ -47,7 +47,7 @@ class BXCLog {
             this.filePath =
                 path_1.default.resolve(entryPath +
                     filePath +
-                    this.dateFormatTime.format(new Date()).replace(/\s/g, '') +
+                    this.dateFormatDate.format(new Date()).replace(/\s/g, '') +
                     ".bxc.log");
             // Create the parent directories just in case the other functions don't
             fs_1.default.mkdirSync(path_1.default.dirname(this.filePath), { recursive: true });

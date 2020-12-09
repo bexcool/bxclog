@@ -115,7 +115,7 @@ export class BXCLog {
                 path.resolve(
                     entryPath +
                     filePath +
-                    this.dateFormatTime.format(new Date()).replace(/\s/g, '') + 
+                    this.dateFormatDate.format(new Date()).replace(/\s/g, '') + 
                     ".bxc.log");
 
             // Create the parent directories just in case the other functions don't
