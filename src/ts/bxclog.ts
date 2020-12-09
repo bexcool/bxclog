@@ -118,7 +118,6 @@ export class BXCLog {
                     this.dateFormatFile.format(new Date()).replace(/\s/g, '') + 
                     ".bxc.log");
 
-            console.debug(this.filePath)
             // Create the parent directories just in case the other functions don't
             fs.mkdirSync(path.dirname(this.filePath), { recursive: true });
         }
