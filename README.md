@@ -83,7 +83,7 @@ const bxclogger = new BXCLog({
 });
 
 const service = "CatsService";
-bxclogger.debug("process.argv", process.argv);
+bxclogger.debug("process.argv", process.argv.join(", "));
 bxclogger.info(service, "purr... meow, meow!", "we think the number", Math.random(), "is really cool... meow 😺");
 bxclogger.warn(service, 
   "The cats are hungry", "\n", "You better go feed them right now \n", 
