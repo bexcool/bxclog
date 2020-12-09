@@ -1,0 +1,7 @@
+test.js
+src/*
+!src/js
+.vscode
+bxclog.code-workspace
+tsconfig.tsbuildinfo
+tsconfig.json
