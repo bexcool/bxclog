@@ -27,12 +27,12 @@ class BXCLog {
         // Where the log file is stored
         this.filePath = "";
         const IntlOptions = Intl.DateTimeFormat().resolvedOptions();
-        if (_options.locale == "auto")
-            _options.locale = IntlOptions.locale;
-        if (_options.timeZone == "auto")
-            _options.timeZone = IntlOptions.timeZone;
         // Assign the new properties to the default settings
         Object.assign(this.options, _options);
+        if (this.options.locale == "auto")
+            this.options.locale = IntlOptions.locale;
+        if (this.options.timeZone == "auto")
+            this.options.timeZone = IntlOptions.timeZone;
         this.setDateTimeFormats();
         this.getBracketsType();
         // If saving to a file is enabled, get the path of the file
@@ -47,7 +47,7 @@ class BXCLog {
             this.filePath =
                 path_1.default.resolve(entryPath +
                     filePath +
-                    this.dateFormatFile.format(new Date()).replace(/\s/g, '') +
+                    this.dateFormatTime.format(new Date()).replace(/\s/g, '') +
                     ".bxc.log");
             // Create the parent directories just in case the other functions don't
             fs_1.default.mkdirSync(path_1.default.dirname(this.filePath), { recursive: true });
@@ -68,13 +68,13 @@ class BXCLog {
         this.doLog("error", service, ...data);
     }
     setDateTimeFormats() {
-        this.dateFormatFile = Intl.DateTimeFormat(this.options.locale, {
+        this.dateFormatTime = Intl.DateTimeFormat(this.options.locale, {
             timeZone: this.options.timeZone,
             year: "2-digit",
             month: "2-digit",
             day: "2-digit",
         });
-        this.dateFormat = Intl.DateTimeFormat(this.options.locale, {
+        this.dateFormatDate = Intl.DateTimeFormat(this.options.locale, {
             timeZone: this.options.timeZone,
             year: "2-digit",
             month: "2-digit",
@@ -113,9 +113,11 @@ class BXCLog {
         return this.bracketsStart + s + this.bracketsClose;
     }
     doLog(type, _service, ...data) {
-        const date = this.dateFormat.format(new Date());
+        const now = new Date();
+        const date = "".concat(this.dateFormatDate.format(now).replace(/\s/g, ''), this.dateFormatTime.format(now).replace(/\s/g, ''));
         _service = _service.trim();
         let service = _service;
+        // A lookup table is much faster than a switch or if-else
         const colorsLookup = {
             "debug": cli_color_1.default.green,
             "info": cli_color_1.default.blue,
@@ -128,7 +130,7 @@ class BXCLog {
         else {
             service = cli_color_1.default.magenta(service);
         }
-        console.log(this.wrapString(date), this.wrapString(service), ...data);
+        console.log("", this.wrapString(date), this.wrapString(service), ...data);
         if (this.options.saveToFile)
             fs_1.default.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" "));
     }

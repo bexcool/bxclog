@@ -79,22 +79,22 @@ export class BXCLog {
     private bracketsStart = "[";
     private bracketsClose = "]";
     // Date for .log files
-    private dateFormatFile!: Intl.DateTimeFormat;
+    private dateFormatTime!: Intl.DateTimeFormat;
     // Date for console output
-    private dateFormat!: Intl.DateTimeFormat;
+    private dateFormatDate!: Intl.DateTimeFormat;
     // Where the log file is stored
     private filePath = "";
 
     constructor(_options: IBXCLogOptions = BXCLogDefaultOptions) {
         const IntlOptions = Intl.DateTimeFormat().resolvedOptions();
-        
-        if (_options.locale == "auto") 
-            _options.locale = IntlOptions.locale;
-        if (_options.timeZone == "auto") 
-            _options.timeZone = IntlOptions.timeZone;
 
         // Assign the new properties to the default settings
         Object.assign(this.options, _options);
+        
+        if (this.options.locale == "auto")
+            this.options.locale = IntlOptions.locale;
+        if (this.options.timeZone == "auto")
+            this.options.timeZone = IntlOptions.timeZone;
 
         this.setDateTimeFormats();
         this.getBracketsType();
@@ -115,7 +115,7 @@ export class BXCLog {
                 path.resolve(
                     entryPath +
                     filePath +
-                    this.dateFormatFile.format(new Date()).replace(/\s/g, '') + 
+                    this.dateFormatTime.format(new Date()).replace(/\s/g, '') + 
                     ".bxc.log");
 
             // Create the parent directories just in case the other functions don't
@@ -142,13 +142,13 @@ export class BXCLog {
     }
 
     private setDateTimeFormats(): void {
-        this.dateFormatFile = Intl.DateTimeFormat(this.options.locale, {
+        this.dateFormatTime = Intl.DateTimeFormat(this.options.locale, {
             timeZone: this.options.timeZone,
             year: "2-digit",
             month: "2-digit",
             day: "2-digit",
         });
-        this.dateFormat = Intl.DateTimeFormat(this.options.locale, {
+        this.dateFormatDate = Intl.DateTimeFormat(this.options.locale, {
             timeZone: this.options.timeZone,
             year: "2-digit",
             month: "2-digit",
@@ -192,11 +192,16 @@ export class BXCLog {
     }
 
     private doLog(type: LogType, _service: string, ...data: any[]): void {
-        const date = this.dateFormat.format(new Date());
+        const now = new Date();
+        const date = "".concat(
+            this.dateFormatDate.format(now).replace(/\s/g, ''), 
+            this.dateFormatTime.format(now).replace(/\s/g, '')
+        );
 
         _service = _service.trim();
         let service = _service;
 
+        // A lookup table is much faster than a switch or if-else
         const colorsLookup = {
             "debug": clc.green,
             "info":  clc.blue,
@@ -210,7 +215,7 @@ export class BXCLog {
             service = clc.magenta(service);
         }
 
-        console.log(this.wrapString(date), this.wrapString(service), ...data);
+        console.log("", this.wrapString(date), this.wrapString(service), ...data);
 
         if (this.options.saveToFile)
             fs.appendFileSync(this.filePath, [this.wrapString(date), `(${type})`, this.wrapString(_service), ...data, "\n"].join(" "));

@@ -46,8 +46,8 @@ export declare class BXCLog {
     private options;
     private bracketsStart;
     private bracketsClose;
-    private dateFormatFile;
-    private dateFormat;
+    private dateFormatTime;
+    private dateFormatDate;
     private filePath;
     constructor(_options?: IBXCLogOptions);
     debug(service: string, ...data: any[]): void;
