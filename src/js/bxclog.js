@@ -70,18 +70,15 @@ class BXCLog {
     setDateTimeFormats() {
         this.dateFormatTime = Intl.DateTimeFormat(this.options.locale, {
             timeZone: this.options.timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-        });
-        this.dateFormatDate = Intl.DateTimeFormat(this.options.locale, {
-            timeZone: this.options.timeZone,
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
             second: "2-digit",
+        });
+        this.dateFormatDate = Intl.DateTimeFormat(this.options.locale, {
+            timeZone: this.options.timeZone,
+            year: "4-digit",
+            month: "2-digit",
+            day: "2-digit",
         });
     }
     getBracketsType() {
@@ -114,7 +111,7 @@ class BXCLog {
     }
     doLog(type, _service, ...data) {
         const now = new Date();
-        const date = "".concat(this.dateFormatDate.format(now).replace(/\s/g, ''), this.dateFormatTime.format(now).replace(/\s/g, ''));
+        const date = "".concat(this.dateFormatDate.format(now).replace(/\s/g, ''), " ", this.dateFormatTime.format(now).replace(/\s/g, ''));
         _service = _service.trim();
         let service = _service;
         // A lookup table is much faster than a switch or if-else
