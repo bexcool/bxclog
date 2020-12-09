@@ -6,7 +6,7 @@ export interface IBXCLogOptions {
      *
      * eg. en-GB, de-DE, en-US
      */
-    locale?: string | string[] | "auto";
+    locale?: string | "auto";
     /**
      * Any timezone.
      *
