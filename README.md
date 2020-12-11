@@ -7,7 +7,6 @@ A simple logging utility module
 
 - [Javascript](#javascript)  
 - [Typescript](#typescript)  
-- [C++](#cpp)
 
 ## Options
 
@@ -109,21 +108,3 @@ import { BXCLog } from "bxclog";
  * The only difference is that instead of the "exports" object you use es6 export ("export const bxclogger = ...")
  */
 ```
-
-## CPP
-
-Note: Has been tested only with Visual Studio 2019
-
-Install by cloning the repository into a directory like `deps` in your solution
-
-`git clone https://github.com/Spejik/bxclog.git`
-
-Then you need to include the repo as a project and set it as a Static Library.
-
-[//]: # (todo: put an image here)
-
-Next, add the following directories into the compiler... or you know what, the code for C++ isn't even completed, so just don't do it yet 🙂 These are just notes for me so I know what to put here 😃
-
-[//]: # (todo: put an image here)
-
-### WIP

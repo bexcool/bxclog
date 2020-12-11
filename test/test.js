@@ -1,7 +1,7 @@
 const clc = require("cli-color");
 const locale = require('locale-codes')
 const sleep = require("sleep");
-const { BXCLog } = require("./index");
+const { BXCLog } = require("../index");
 
 let totalTestsTime = 0;
 
